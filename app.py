@@ -52,7 +52,7 @@ st.markdown("""
         color: #2e7d32;
         border: 3px solid #2e7d32;
     }
-    .physics-explanation {
+    .AI-explanation {
         background-color: #e3f2fd;
         padding: 1rem;
         border-radius: 8px;
@@ -63,8 +63,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Header
-st.markdown('<div class="main-header">🤖 AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Intelligent Pattern Recognition | 4-Week Pilot</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Intelligent Pattern Recognition | DEMO</div>', unsafe_allow_html=True)
 
 # Introduction
 with st.expander("About This System", expanded=False):
@@ -279,7 +279,7 @@ if uploaded_file is not None:
                         )
 
                         # Detailed view in expander
-                        with st.expander(f"Physics Analysis - Cylinder {cyl_num}"):
+                        with st.expander(f"AI Analysis - Cylinder {cyl_num}"):
                             for valve in valves:
                                 r = valve['result']
                                 st.markdown(f"**{valve['valve_id']}** ({valve['valve_position']})")
@@ -297,9 +297,9 @@ if uploaded_file is not None:
                                     st.metric("Median", f"{r.feature_values['median_amplitude']:.2f} G")
                                     st.metric("Max", f"{r.feature_values['max_amplitude']:.2f} G")
 
-                                # Physics explanation
-                                st.markdown("**Physics Explanation:**")
-                                st.markdown(f'<div class="physics-explanation">{r.explanation}</div>',
+                                # AI explanation
+                                st.markdown("**AI Explanation:**")
+                                st.markdown(f'<div class="AI-explanation">{r.explanation}</div>',
                                            unsafe_allow_html=True)
 
                                 st.markdown("---")
@@ -414,8 +414,9 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 0.9rem;'>
-    <p><strong>4-Week Pilot - Week 2 Deliverable</strong></p>
+    <p><strong>AI driven DEMO system using XGBoost and Random Forest AI Models</strong></p>
     <p>AI-Powered Valve Leak Detection | Intelligent Pattern Recognition</p>
     <p>Machine Learning Analysis of Ultrasonic Acoustic Emission Patterns</p>
 </div>
 """, unsafe_allow_html=True)
+
