@@ -117,8 +117,8 @@ def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name
     return fig
 
 # Header
-st.markdown('<div class="main-header">🤖 AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Intelligent Pattern Recognition | 4-Week Pilot</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Intelligent Pattern Recognition | DEMO</div>', unsafe_allow_html=True)
 
 # Introduction
 with st.expander("About This System", expanded=False):
@@ -479,8 +479,9 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 0.9rem;'>
-    <p><strong>4-Week Pilot - Week 2 Deliverable</strong></p>
+    <p><strong>DEMO - AI detection system</strong></p>
     <p>AI-Powered Valve Leak Detection | Intelligent Pattern Recognition</p>
     <p>Machine Learning Analysis of Ultrasonic Acoustic Emission Patterns</p>
 </div>
 """, unsafe_allow_html=True)
+
