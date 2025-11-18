@@ -128,7 +128,7 @@ def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name
     fig.add_hline(
         y=mean_amp,
         line_dash="dash",
-        line_color=line_color,
+        line_color=envelope_color,
         annotation_text=f"Mean: {mean_amp:.2f}G",
         annotation_position="right"
     )
@@ -226,7 +226,7 @@ if uploaded_file is not None:
     st.markdown("---")
 
     # Analyze button
-    if st.button("Analyze All Cylinders", type="primary", use_container_width=True):
+    if st.button("Analyze All Cylinders", type="primary", width='stretch'):
         with st.spinner("Analyzing ultrasonic patterns..."):
             # Parse XML to get all curves
             df_curves = parse_curves_xml(xml_content)
@@ -382,7 +382,7 @@ if uploaded_file is not None:
                                 return ''
 
                         # Apply styling
-                        styled_df = df_results.style.apply(highlight_leaks, axis=1).applymap(
+                        styled_df = df_results.style.apply(highlight_leaks, axis=1).map(
                             style_leak_probability,
                             subset=['Leak Probability']
                         )
@@ -390,7 +390,7 @@ if uploaded_file is not None:
                         st.dataframe(
                             styled_df,
                             hide_index=True,
-                            use_container_width=True
+                            width='stretch'
                         )
 
                         # Detailed view in expander
@@ -426,7 +426,7 @@ if uploaded_file is not None:
                                     mean_amp=r.feature_values['mean_amplitude'],
                                     valve_name=valve['valve_id']
                                 )
-                                st.plotly_chart(fig, use_container_width=True)
+                                st.plotly_chart(fig, width='stretch')
 
                                 st.markdown("---")
 
@@ -481,7 +481,7 @@ if uploaded_file is not None:
                             showlegend=False
                         )
 
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width='stretch')
 
                     st.info("Each cylinder bar shows the HIGHEST leak probability among its valves.")
 
