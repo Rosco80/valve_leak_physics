@@ -21,6 +21,7 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
+    /* Main headers */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
@@ -34,6 +35,8 @@ st.markdown("""
         text-align: center;
         margin-bottom: 2rem;
     }
+
+    /* Result boxes */
     .result-box {
         padding: 2rem;
         border-radius: 10px;
@@ -52,12 +55,46 @@ st.markdown("""
         color: #2e7d32;
         border: 3px solid #2e7d32;
     }
+
+    /* Explanation boxes */
     .physics-explanation {
         background-color: #e3f2fd;
         padding: 1rem;
         border-radius: 8px;
         font-family: monospace;
         white-space: pre-wrap;
+    }
+
+    /* Section headers */
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1976d2;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    /* Info cards */
+    .info-card {
+        background-color: #f5f5f5;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #1976d2;
+        margin: 1rem 0;
+    }
+
+    /* Metric improvements */
+    [data-testid="stMetricValue"] {
+        font-size: 1.8rem;
+    }
+
+    /* Improve spacing */
+    .stButton button {
+        font-size: 1.1rem;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -148,14 +185,37 @@ def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name
 
     # Update layout
     pattern_type = "SMEAR PATTERN (Leak)" if is_leak else "SPIKE PATTERN (Normal)"
+    title_color = '#c62828' if is_leak else '#2e7d32'
+
     fig.update_layout(
-        title=f"{valve_name} - {pattern_type}",
-        xaxis_title="Crank Angle (degrees)",
-        yaxis_title="Amplitude (G)",
-        height=400,
+        title={
+            'text': f"<b>{valve_name}</b><br><span style='font-size:14px; color:{title_color}'>{pattern_type}</span>",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 18}
+        },
+        xaxis_title="<b>Crank Angle (degrees)</b>",
+        yaxis_title="<b>Amplitude (G)</b>",
+        height=450,
         hovermode='x unified',
         showlegend=False,
-        template='plotly_white'
+        template='plotly_white',
+        font=dict(size=13),
+        margin=dict(l=60, r=40, t=80, b=60),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor='#e0e0e0',
+            zeroline=True,
+            zerolinewidth=1,
+            zerolinecolor='#666'
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor='#e0e0e0',
+            zeroline=True,
+            zerolinewidth=2,
+            zerolinecolor='#666'
+        )
     )
 
     return fig
@@ -310,28 +370,48 @@ if uploaded_file is not None:
                         }
 
                     # Display overall summary
-                    st.markdown("## Analysis Results")
+                    st.markdown('<div class="section-header">📋 Analysis Results Summary</div>', unsafe_allow_html=True)
 
                     leaking_cylinders = [cyl for cyl, status in cylinder_status.items() if status['has_leak']]
+                    total_cylinders = len([c for c in cylinder_status.keys() if c != 0])
+                    total_valves = len(all_results)
 
                     if leaking_cylinders:
                         st.markdown(
-                            f'<div class="result-box leak-detected">LEAKS DETECTED IN {len(leaking_cylinders)} CYLINDER(S)</div>',
+                            f'<div class="result-box leak-detected">⚠️ LEAKS DETECTED IN {len(leaking_cylinders)} OF {total_cylinders} CYLINDER(S)</div>',
                             unsafe_allow_html=True
                         )
-                        st.error(f"**Leaking Cylinders:** {', '.join([f'Cylinder {c}' for c in sorted(leaking_cylinders)])}")
-                        st.warning("**Recommendation:** Schedule maintenance inspection for affected cylinders.")
+                        st.error(f"**Affected Cylinders:** {', '.join([f'Cylinder {c}' for c in sorted(leaking_cylinders)])}")
+                        st.warning("**⚡ Recommendation:** Schedule immediate maintenance inspection for affected cylinders to prevent efficiency loss and potential damage.")
+
+                        # Summary metrics
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Total Cylinders", total_cylinders)
+                        with col2:
+                            st.metric("Leaking Cylinders", len(leaking_cylinders), delta=f"{len(leaking_cylinders)}/{total_cylinders}")
+                        with col3:
+                            st.metric("Total Valves Analyzed", total_valves)
                     else:
                         st.markdown(
-                            '<div class="result-box normal-detected">ALL CYLINDERS NORMAL</div>',
+                            f'<div class="result-box normal-detected">✅ ALL {total_cylinders} CYLINDERS OPERATING NORMALLY</div>',
                             unsafe_allow_html=True
                         )
-                        st.success("**Status:** All valves operating within normal parameters.")
+                        st.success("**✓ Status:** All valves operating within normal parameters. No maintenance required at this time.")
+
+                        # Summary metrics
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Total Cylinders", total_cylinders)
+                        with col2:
+                            st.metric("Normal Cylinders", total_cylinders, delta="100%")
+                        with col3:
+                            st.metric("Total Valves Analyzed", total_valves)
 
                     st.markdown("---")
 
                     # Display per-cylinder results
-                    st.subheader("Cylinder-by-Cylinder Breakdown")
+                    st.markdown('<div class="section-header">🔍 Detailed Cylinder-by-Cylinder Analysis</div>', unsafe_allow_html=True)
 
                     for cyl_num in sorted(cylinders.keys()):
                         if cyl_num == 0:
@@ -340,11 +420,25 @@ if uploaded_file is not None:
                         valves = cylinders[cyl_num]
                         status = cylinder_status[cyl_num]
 
-                        # Cylinder header
+                        # Cylinder header with better visual separation
+                        st.markdown("---")
                         if status['has_leak']:
-                            st.markdown(f"### Cylinder {cyl_num} - LEAK DETECTED ({status['leak_count']} valve(s))")
+                            st.markdown(f"""
+                            <div style='background-color: #ffebee; padding: 1rem; border-radius: 8px; border-left: 5px solid #c62828;'>
+                                <h3 style='color: #c62828; margin: 0;'>
+                                    ⚠️ Cylinder {cyl_num} - LEAK DETECTED ({status['leak_count']} valve(s))
+                                </h3>
+                            </div>
+                            """, unsafe_allow_html=True)
                         else:
-                            st.markdown(f"### Cylinder {cyl_num} - Normal")
+                            st.markdown(f"""
+                            <div style='background-color: #e8f5e9; padding: 1rem; border-radius: 8px; border-left: 5px solid #2e7d32;'>
+                                <h3 style='color: #2e7d32; margin: 0;'>
+                                    ✓ Cylinder {cyl_num} - Normal Operation
+                                </h3>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        st.markdown("")  # Add spacing
 
                         # Create table for this cylinder's valves
                         valve_results = []
@@ -398,31 +492,43 @@ if uploaded_file is not None:
                         )
 
                         # Detailed view in expander
-                        with st.expander(f"Physics Analysis - Cylinder {cyl_num}"):
+                        with st.expander(f"📊 Detailed Physics Analysis - Cylinder {cyl_num}", expanded=False):
                             for valve in valves:
                                 r = valve['result']
-                                st.markdown(f"**{valve['valve_id']}** ({valve['valve_position']})")
+
+                                # Valve header
+                                valve_color = '#c62828' if r.is_leak else '#2e7d32'
+                                st.markdown(f"""
+                                <div style='background-color: {"#ffebee" if r.is_leak else "#e8f5e9"};
+                                            padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem;
+                                            border-left: 4px solid {valve_color};'>
+                                    <h4 style='color: {valve_color}; margin: 0;'>
+                                        {valve['valve_id']} ({valve['valve_position']})
+                                    </h4>
+                                </div>
+                                """, unsafe_allow_html=True)
 
                                 col1, col2 = st.columns(2)
                                 with col1:
-                                    st.markdown("**Detection Result**")
-                                    st.metric("Leak Probability", f"{r.leak_probability:.1f}%")
-                                    st.metric("Status", "LEAK" if r.is_leak else "Normal")
-                                    st.metric("Confidence", f"{r.confidence:.1%}")
+                                    st.markdown("#### 🎯 Detection Result")
+                                    st.metric("Leak Probability", f"{r.leak_probability:.1f}%",
+                                             delta="⚠️ LEAK" if r.is_leak else "✓ Normal",
+                                             delta_color="inverse" if r.is_leak else "normal")
+                                    st.metric("Confidence Score", f"{r.confidence:.1%}")
 
                                 with col2:
-                                    st.markdown("**Amplitude Statistics**")
-                                    st.metric("Mean", f"{r.feature_values['mean_amplitude']:.2f} G")
-                                    st.metric("Median", f"{r.feature_values['median_amplitude']:.2f} G")
-                                    st.metric("Max", f"{r.feature_values['max_amplitude']:.2f} G")
+                                    st.markdown("#### 📈 Amplitude Statistics")
+                                    st.metric("Mean Amplitude", f"{r.feature_values['mean_amplitude']:.2f} G")
+                                    st.metric("Median Amplitude", f"{r.feature_values['median_amplitude']:.2f} G")
+                                    st.metric("Max Amplitude", f"{r.feature_values['max_amplitude']:.2f} G")
 
                                 # Physics explanation
-                                st.markdown("**Physics Explanation:**")
+                                st.markdown("#### 🔬 Physics Explanation")
                                 st.markdown(f'<div class="physics-explanation">{r.explanation}</div>',
                                            unsafe_allow_html=True)
 
                                 # Waveform visualization
-                                st.markdown("**Waveform Pattern:**")
+                                st.markdown("#### 📉 Waveform Pattern Analysis")
                                 fig = create_waveform_plot(
                                     amplitudes=df_curves[valve['column']].values,
                                     crank_angles=df_curves['Crank Angle'].values,
