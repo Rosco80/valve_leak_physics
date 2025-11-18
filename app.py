@@ -62,25 +62,77 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def calculate_envelope(amplitudes, window_size=15):
+    """Calculate upper and lower envelopes using rolling max/min"""
+    # Convert to pandas Series for rolling operations
+    signal = pd.Series(amplitudes)
+
+    # Calculate upper envelope (rolling max)
+    upper = signal.rolling(window=window_size, center=True).max()
+
+    # Calculate lower envelope (rolling min)
+    lower = signal.rolling(window=window_size, center=True).min()
+
+    # Fill NaN values at edges
+    upper = upper.fillna(signal)
+    lower = lower.fillna(signal)
+
+    return upper.values, lower.values
+
 def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name):
-    """Create interactive waveform visualization showing smear vs spike pattern"""
+    """Create interactive waveform visualization showing smear vs spike pattern with envelope analysis"""
 
     # Create figure
     fig = go.Figure()
 
     # Determine color based on leak status
     line_color = '#c62828' if is_leak else '#2e7d32'  # Red for leak, green for normal
-    fill_color = 'rgba(198, 40, 40, 0.1)' if is_leak else 'rgba(46, 125, 50, 0.1)'
+    envelope_color = '#d32f2f' if is_leak else '#388e3c'  # Darker shade for envelope
+    fill_color = 'rgba(198, 40, 40, 0.15)' if is_leak else 'rgba(46, 125, 50, 0.15)'
 
-    # Add waveform trace
+    # Calculate envelope
+    upper_env, lower_env = calculate_envelope(amplitudes)
+
+    # Add envelope fill (between upper and lower)
+    fig.add_trace(go.Scatter(
+        x=np.concatenate([crank_angles, crank_angles[::-1]]),
+        y=np.concatenate([upper_env, lower_env[::-1]]),
+        fill='toself',
+        fillcolor=fill_color,
+        line=dict(width=0),
+        name='Envelope Range',
+        showlegend=False,
+        hoverinfo='skip'
+    ))
+
+    # Add upper envelope line
+    fig.add_trace(go.Scatter(
+        x=crank_angles,
+        y=upper_env,
+        mode='lines',
+        name='Upper Envelope',
+        line=dict(color=envelope_color, width=2, dash='dot'),
+        hovertemplate='<b>Upper:</b> %{y:.2f}G<extra></extra>'
+    ))
+
+    # Add lower envelope line
+    fig.add_trace(go.Scatter(
+        x=crank_angles,
+        y=lower_env,
+        mode='lines',
+        name='Lower Envelope',
+        line=dict(color=envelope_color, width=2, dash='dot'),
+        hovertemplate='<b>Lower:</b> %{y:.2f}G<extra></extra>'
+    ))
+
+    # Add original waveform (semi-transparent)
     fig.add_trace(go.Scatter(
         x=crank_angles,
         y=amplitudes,
         mode='lines',
         name='Amplitude',
-        line=dict(color=line_color, width=2),
-        fill='tozeroy',
-        fillcolor=fill_color,
+        line=dict(color=line_color, width=1),
+        opacity=0.4,
         hovertemplate='<b>Crank Angle:</b> %{x}°<br><b>Amplitude:</b> %{y:.2f}G<extra></extra>'
     ))
 
