@@ -86,30 +86,34 @@ def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name
     fig = go.Figure()
 
     # Determine color based on leak status
-    waveform_color = 'rgba(66, 165, 245, 0.6)'  # Blue, semi-transparent for waveform
+    waveform_color = 'rgba(66, 165, 245, 0.4)'  # Blue, semi-transparent for filled area
     envelope_color = '#c62828' if is_leak else '#2e7d32'  # Red for leak, green for normal
 
     # Calculate upper envelope only
     upper_env, _ = calculate_envelope(amplitudes)
 
-    # Add mirrored waveform (negative/below zero)
+    # Add filled mirrored waveform using fill='tonexty'
+    # First add the negative (mirrored) trace
     fig.add_trace(go.Scatter(
         x=crank_angles,
         y=-amplitudes,  # Negative values for mirror effect
         mode='lines',
-        name='Waveform (mirrored)',
-        line=dict(color=waveform_color, width=0.5),
+        name='Waveform',
+        line=dict(color=waveform_color, width=0),
+        fill=None,
         showlegend=False,
         hoverinfo='skip'
     ))
 
-    # Add original waveform (positive/above zero)
+    # Then add the positive trace with fill to create the envelope band
     fig.add_trace(go.Scatter(
         x=crank_angles,
         y=amplitudes,
         mode='lines',
         name='Waveform',
-        line=dict(color=waveform_color, width=0.5),
+        line=dict(color=waveform_color, width=0),
+        fill='tonexty',  # Fill to previous trace (creates the envelope band)
+        fillcolor=waveform_color,
         showlegend=False,
         hovertemplate='<b>Crank Angle:</b> %{x}°<br><b>Amplitude:</b> %{y:.2f}G<extra></extra>'
     ))
