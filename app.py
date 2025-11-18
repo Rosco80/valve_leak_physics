@@ -52,7 +52,7 @@ st.markdown("""
         color: #2e7d32;
         border: 3px solid #2e7d32;
     }
-    .AI-explanation {
+    .physics-explanation {
         background-color: #e3f2fd;
         padding: 1rem;
         border-radius: 8px;
@@ -62,9 +62,63 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name):
+    """Create interactive waveform visualization showing smear vs spike pattern"""
+
+    # Create figure
+    fig = go.Figure()
+
+    # Determine color based on leak status
+    line_color = '#c62828' if is_leak else '#2e7d32'  # Red for leak, green for normal
+    fill_color = 'rgba(198, 40, 40, 0.1)' if is_leak else 'rgba(46, 125, 50, 0.1)'
+
+    # Add waveform trace
+    fig.add_trace(go.Scatter(
+        x=crank_angles,
+        y=amplitudes,
+        mode='lines',
+        name='Amplitude',
+        line=dict(color=line_color, width=2),
+        fill='tozeroy',
+        fillcolor=fill_color,
+        hovertemplate='<b>Crank Angle:</b> %{x}°<br><b>Amplitude:</b> %{y:.2f}G<extra></extra>'
+    ))
+
+    # Add mean amplitude reference line
+    fig.add_hline(
+        y=mean_amp,
+        line_dash="dash",
+        line_color=line_color,
+        annotation_text=f"Mean: {mean_amp:.2f}G",
+        annotation_position="right"
+    )
+
+    # Add 2G threshold reference (leak indicator)
+    fig.add_hline(
+        y=2.0,
+        line_dash="dot",
+        line_color="orange",
+        annotation_text="2G Threshold",
+        annotation_position="left"
+    )
+
+    # Update layout
+    pattern_type = "SMEAR PATTERN (Leak)" if is_leak else "SPIKE PATTERN (Normal)"
+    fig.update_layout(
+        title=f"{valve_name} - {pattern_type}",
+        xaxis_title="Crank Angle (degrees)",
+        yaxis_title="Amplitude (G)",
+        height=400,
+        hovermode='x unified',
+        showlegend=False,
+        template='plotly_white'
+    )
+
+    return fig
+
 # Header
-st.markdown('<div class="main-header">AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Intelligent Pattern Recognition | DEMO</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🤖 AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Intelligent Pattern Recognition | 4-Week Pilot</div>', unsafe_allow_html=True)
 
 # Introduction
 with st.expander("About This System", expanded=False):
@@ -279,7 +333,7 @@ if uploaded_file is not None:
                         )
 
                         # Detailed view in expander
-                        with st.expander(f"AI Analysis - Cylinder {cyl_num}"):
+                        with st.expander(f"Physics Analysis - Cylinder {cyl_num}"):
                             for valve in valves:
                                 r = valve['result']
                                 st.markdown(f"**{valve['valve_id']}** ({valve['valve_position']})")
@@ -297,10 +351,21 @@ if uploaded_file is not None:
                                     st.metric("Median", f"{r.feature_values['median_amplitude']:.2f} G")
                                     st.metric("Max", f"{r.feature_values['max_amplitude']:.2f} G")
 
-                                # AI explanation
-                                st.markdown("**AI Explanation:**")
-                                st.markdown(f'<div class="AI-explanation">{r.explanation}</div>',
+                                # Physics explanation
+                                st.markdown("**Physics Explanation:**")
+                                st.markdown(f'<div class="physics-explanation">{r.explanation}</div>',
                                            unsafe_allow_html=True)
+
+                                # Waveform visualization
+                                st.markdown("**Waveform Pattern:**")
+                                fig = create_waveform_plot(
+                                    amplitudes=df_curves[valve['column']].values,
+                                    crank_angles=df_curves['Crank Angle'].values,
+                                    is_leak=r.is_leak,
+                                    mean_amp=r.feature_values['mean_amplitude'],
+                                    valve_name=valve['valve_id']
+                                )
+                                st.plotly_chart(fig, use_container_width=True)
 
                                 st.markdown("---")
 
@@ -414,9 +479,8 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 0.9rem;'>
-    <p><strong>AI driven DEMO system using XGBoost and Random Forest AI Models</strong></p>
+    <p><strong>4-Week Pilot - Week 2 Deliverable</strong></p>
     <p>AI-Powered Valve Leak Detection | Intelligent Pattern Recognition</p>
     <p>Machine Learning Analysis of Ultrasonic Acoustic Emission Patterns</p>
 </div>
 """, unsafe_allow_html=True)
-
