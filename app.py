@@ -117,8 +117,8 @@ def create_waveform_plot(amplitudes, crank_angles, is_leak, mean_amp, valve_name
     return fig
 
 # Header
-st.markdown('<div class="main-header">AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Intelligent Pattern Recognition | DEMO</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🤖 AI-Powered Valve Leak Detection</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Intelligent Pattern Recognition | 4-Week Pilot</div>', unsafe_allow_html=True)
 
 # Introduction
 with st.expander("About This System", expanded=False):
@@ -326,8 +326,29 @@ if uploaded_file is not None:
                                 return ['background-color: #ffebee'] * len(row)
                             return [''] * len(row)
 
+                        def style_leak_probability(val):
+                            """Color code leak probability based on risk level"""
+                            try:
+                                # Extract numeric value (remove %)
+                                prob = float(val.replace('%', ''))
+
+                                if prob <= 30:
+                                    return 'background-color: #e8f5e9; color: #2e7d32; font-weight: bold'  # Green
+                                elif prob <= 50:
+                                    return 'background-color: #fff3e0; color: #f57c00; font-weight: bold'  # Orange
+                                else:
+                                    return 'background-color: #ffebee; color: #c62828; font-weight: bold'  # Red
+                            except:
+                                return ''
+
+                        # Apply styling
+                        styled_df = df_results.style.apply(highlight_leaks, axis=1).applymap(
+                            style_leak_probability,
+                            subset=['Leak Probability']
+                        )
+
                         st.dataframe(
-                            df_results.style.apply(highlight_leaks, axis=1),
+                            styled_df,
                             hide_index=True,
                             use_container_width=True
                         )
@@ -479,9 +500,8 @@ else:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; color: #666; font-size: 0.9rem;'>
-    <p><strong>DEMO - AI detection system</strong></p>
+    <p><strong>4-Week Pilot - Week 2 Deliverable</strong></p>
     <p>AI-Powered Valve Leak Detection | Intelligent Pattern Recognition</p>
     <p>Machine Learning Analysis of Ultrasonic Acoustic Emission Patterns</p>
 </div>
 """, unsafe_allow_html=True)
-
